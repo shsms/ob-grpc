@@ -1,0 +1,74 @@
+* ob-grpc
+ob-grpc provides functions for making grpc calls through org-babel,
+using [[https://github.com/fullstorydev/grpcurl][grpcurl]].
+
+** Installation
+
+Not available on melpa yet.  Currently the easiest way to install is
+to use [[https://github.com/raxod502/straight.el][straight.el]]
+
+#+begin_src elisp
+(straight-use-package
+ '(ob-grpc :type git :host github :repo "shsms/ob-grpc"))
+#+end_src
+
+Also install [[https://github.com/fullstorydev/grpcurl][grpcurl]].
+
+Add the below to your ~init.el~ to prevent a confirmation request from
+org-babel every time you execute a block:
+
+#+begin_src elisp
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (member lang '(
+                        "grpc"
+                        ;; other source languages
+                        ))))
+
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+#+end_src
+
+** Usage
+
+*** Init
+In an empty org buffer, run ~M-x ob-grpc-init~.  This would add these
+properties to the buffer:
+
+#+begin_src org
+:PROPERTIES:
+:GRPC-ENDPOINT: [::1]:8080
+:PROTO-FILE: ./proto/service.proto
+:PROTO-IMPORT-PATH: proto
+:PLAIN-TEXT: no
+:END:
+#+end_src
+
+Update their values as necessary.  When not using TLS, set
+~:PLAIN-TEXT:~ to ~yes~.
+
+*** Insert org-babel blocks
+
+Run ~M-x ob-grpc-insert-block~.  That would prompt for a method name,
+with all the methods in the ~:PROTO-FILE:~ as completion options.
+Choose one, and it will automatically insert an org block, with the
+method name, and a template message for the request type of the
+message.  For example,
+
+#+begin_src org
+> #+begin_src grpc :method echo.Echo.Echo
+> {
+>   "str": ""
+> }
+> #+end_src
+#+end_src
+
+*** Execute the block
+
+Update the request object as necessary, and press ~C-c C-c~ inside the block.
+
+** Troubleshooting
+
+There is not a lot of error handling at the moment.  So when something
+doesn't work as expected, visit the ~*Messages*~ buffer.  All the calls
+to ~grpcurl~ and responses are logged there.
+
+No support for streaming grpc methods yet.
