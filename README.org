@@ -14,7 +14,7 @@ to use [[https://github.com/raxod502/straight.el][straight.el]]
 
 Also install [[https://github.com/fullstorydev/grpcurl][grpcurl]].
 
-Add the below to your ~init.el~ to prevent a confirmation request from
+Optionally, add the below to your ~init.el~ to prevent a confirmation request from
 org-babel every time you execute a block:
 
 #+begin_src elisp
@@ -42,8 +42,10 @@ properties to the buffer:
 :END:
 #+end_src
 
-Update their values as necessary.  When not using TLS, set
-~:PLAIN-TEXT:~ to ~yes~.
+*Notes:*
+- Update their values as necessary.
+- When not using TLS, set ~:PLAIN-TEXT:~ to ~yes~.
+- Separate multiple import paths by a space character.
 
 *** Insert org-babel blocks
 

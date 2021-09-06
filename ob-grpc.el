@@ -41,7 +41,7 @@
   "Take a list of IMPORT-PATHS and return string of grpcurl cli arguments."
   (let (result)
     (dolist (item import-paths result)
-      (setq result (concat "-import-path " item result)))
+      (setq result (concat " -import-path " item result)))
     result))
 
 
