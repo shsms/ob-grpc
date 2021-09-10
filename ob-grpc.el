@@ -69,7 +69,7 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
 (defun ob-grpc--get-method-names ()
   "Return a list of grpc method names from grpcurl."
   (let* ((proto-file (org-entry-get nil "PROTO-FILE" t))
-	 (import-paths (org-entry-get-multivalued-property nil "PROTO-IMPORT-PATH"))
+	 (import-paths (split-string (org-entry-get nil "PROTO-IMPORT-PATH" t) " "))
 	 (service-names (ob-grpc--grpcurl-list proto-file import-paths))
 	 (methods))
     (message "services: %s" service-names)
@@ -86,7 +86,7 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
 (defun ob-grpc--grpcurl-msg-template (name)
   "Return the method signature and request msg template for method NAME, using grpcurl."
   (let* ((proto-file (org-entry-get nil "PROTO-FILE" t))
-	 (import-paths (org-entry-get-multivalued-property nil "PROTO-IMPORT-PATH"))
+	 (import-paths (split-string (org-entry-get nil "PROTO-IMPORT-PATH" t) " "))
 	 (method-description (ob-grpc--grpcurl-describe proto-file import-paths name))
 	 (msg-template "uninitialized"))
 
@@ -129,10 +129,10 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
 ;;;###autoload
 (defun org-babel-execute:grpc (body params)
   "Execute a grpc call with BODY as request, using grpcurl, with method and endpoint taken from PARAMS."
-  (let* ((proto-file (org-entry-get nil "PROTO-FILE"))
-	 (import-paths (org-entry-get-multivalued-property nil "PROTO-IMPORT-PATH"))
-	 (grpc-endpoint (org-entry-get nil "GRPC-ENDPOINT"))
-	 (plain-text (org-entry-get nil "PLAIN-TEXT"))
+  (let* ((proto-file (org-entry-get nil "PROTO-FILE" t))
+	 (import-paths (split-string (org-entry-get nil "PROTO-IMPORT-PATH" t) " "))
+	 (grpc-endpoint (org-entry-get nil "GRPC-ENDPOINT" t))
+	 (plain-text (org-entry-get nil "PLAIN-TEXT" t))
          (method (alist-get :method params)))
     (shell-command-to-string
      (message "grpcurl %s -proto %s %s -d %s \"%s\" \"%s\""
