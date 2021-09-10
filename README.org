@@ -12,6 +12,16 @@ to use [[https://github.com/raxod502/straight.el][straight.el]]
  '(ob-grpc :type git :host github :repo "shsms/ob-grpc"))
 #+end_src
 
+Or with ~use-package~ + ~straight.el~
+
+#+begin_src elisp
+  (use-package ob-grpc
+    :straight (ob-grpc :type git :host github :repo "shsms/ob-grpc")
+    :bind (:map org-mode-map
+                ("C-c g i" . ob-grpc-init)
+                ("C-c g b" . ob-grpc-insert-block)))
+#+end_src
+
 Also install [[https://github.com/fullstorydev/grpcurl][grpcurl]].
 
 Optionally, add the below to your ~init.el~ to prevent a confirmation request from
