@@ -21,7 +21,8 @@
   (setq-local prop-defaults '(("GRPC-ENDPOINT" . "[::1]:8080")
 			      ("PROTO-FILE" . "./proto/service.proto")
 			      ("PROTO-IMPORT-PATH" . "proto")
-			      ("PLAIN-TEXT" . "yes")))
+			      ("PLAIN-TEXT" . "yes")
+                              ("GRPC-BLOCK-PREFIX" . "* TODO ${method}\\n\\n# ${decl}\\n")))
   (let ((props (org-buffer-property-keys)))
     (mapcar
      (lambda (kvp)
@@ -88,29 +89,43 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
   (let* ((proto-file (org-entry-get nil "PROTO-FILE" t))
 	 (import-paths (split-string (org-entry-get nil "PROTO-IMPORT-PATH" t) " "))
 	 (method-description (ob-grpc--grpcurl-describe proto-file import-paths name))
-	 (msg-template "uninitialized"))
-
-      ;;   (save-match-data ; is usually a good idea
-      ;; (and (string-match "\\`\\([^@]+\\)@\\([^@]+\\)\\'" email)
-      ;;      (setq user (match-string 1 email)
-    ;;            domain (match-string 2 email) ) ))
+	 (msg-template "uninitialized")
+         (block-prefix nil))
     (message "%s" method-description)
     (save-match-data
       (and (string-match
-	    "^rpc [A-Za-z_0-9]+ (\\( stream\\)? \\([a-zA-Z._0-9]+\\) ) returns (\\( stream\\)? \\([a-zA-Z._0-9]+\\) )"
+	    "^rpc \\([A-Za-z_0-9]+\\) (\\( stream\\)? \\([a-zA-Z._0-9]+\\) ) returns (\\( stream\\)? \\([a-zA-Z._0-9]+\\) )"
 	    method-description)
            (let ((decl (match-string 0 method-description))
-		 (req-stream (match-string 1 method-description))
-		 (req-message (match-string 2 method-description))
-		 (resp-stream (match-string 3 method-description))
-		 (resp-message (match-string 4 method-description)))
-	     ;; (message "decl: %s" decl)
-	     (let ((msg-desc (ob-grpc--grpcurl-describe proto-file import-paths req-message t)))
+                 (method-short (match-string 1 method-description))
+		 (req-stream (match-string 2 method-description))
+		 (req-message (match-string 3 method-description))
+		 (resp-stream (match-string 4 method-description))
+		 (resp-message (match-string 5 method-description))
+                 (grpc-block-prefix (org-entry-get nil "GRPC-BLOCK-PREFIX" t)))
+             (when grpc-block-prefix
+               (setq block-prefix (replace-regexp-in-string
+                                   (regexp-quote "${method-full}") name
+                                   (replace-regexp-in-string
+                                    (regexp-quote "${method}") method-short
+                                    (replace-regexp-in-string
+                                     (regexp-quote "${req-type}") (if req-stream
+                                                                      (concat req-stream " " req-message)
+                                                                    req-message)
+                                     (replace-regexp-in-string
+                                      (regexp-quote "${resp-type}") (if resp-stream
+                                                                        (concat resp-stream " " resp-message)
+                                                                      resp-message)
+                                      (replace-regexp-in-string
+                                       (regexp-quote "${decl}") decl
+                                       (replace-regexp-in-string
+                                        (regexp-quote "\\n") "\n"
+                                        grpc-block-prefix))))))))
+             (let ((msg-desc (ob-grpc--grpcurl-describe proto-file import-paths req-message t)))
 	       (and (string-match "Message template:\n\\(.*\\(?:\n.*\\)*?\\)\\(?:\n\\'\\)"
 				  msg-desc)
-		    ;; (message "msg-desc: %s" msg-desc)
-		    (setq msg-template (match-string 1 msg-desc)))))))
-    msg-template))
+                    (setq msg-template (match-string 1 msg-desc)))))))
+    (list block-prefix msg-template)))
 
 
 ;;;###autoload
@@ -120,10 +135,16 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
    (let* ((methods (ob-grpc--get-method-names)))
      (list (completing-read (format-prompt "Choose a method" (car methods))
 			    methods nil nil nil nil methods))))
-  (org-insert-structure-template "src")
-  (end-of-line)
-  (insert (concat "grpc :method " name "\n"
-		  (ob-grpc--grpcurl-msg-template name))))
+  (let ((msg-template (ob-grpc--grpcurl-msg-template name)))
+    (org-insert-structure-template "src")
+    (when (nth 0 msg-template)
+      (save-excursion
+        (beginning-of-line)
+        (open-line 1)
+        (insert (nth 0 msg-template))))
+    (end-of-line)
+    (insert (concat "grpc :method " name "\n"
+		    (nth 1 msg-template)))))
 
 
 ;;;###autoload

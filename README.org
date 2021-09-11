@@ -49,6 +49,7 @@ properties to the buffer:
   :PROTO-FILE: ./proto/service.proto
   :PROTO-IMPORT-PATH: proto
   :PLAIN-TEXT: yes
+  :GRPC-BLOCK-PREFIX: * TODO ${method}\n\n# ${decl}\n
   :END:
 #+end_src
 
@@ -56,6 +57,8 @@ properties to the buffer:
 - Update their values as necessary.
 - When using TLS, set ~:PLAIN-TEXT:~ to ~no~.
 - Separate multiple import paths by a space character.
+- The ~:GRPC-BLOCK-PREFIX:~ is a template for a prefix to the org-babel
+  block.  Check below for details on how to configure.
 
 *** Insert org-babel blocks
 
@@ -76,6 +79,22 @@ message.  For example,
 *** Execute the block
 
 Update the request object as necessary, and press ~C-c C-c~ inside the block.
+
+*** Configure ~:GRPC-BLOCK-PREFIX:~
+
+If you don't want any text to be added in front of each of your
+org-babel blocks, this can be set to ~:GRPC-BLOCK-PREFIX: nil~.  The
+default value ~:GRPC-BLOCK-PREFIX: * TODO ${method}\n\n# ${decl}\n~ adds
+a new TODO org-section, followed by a comment with the grpc declation
+of the selected method.  Here's a list of template arguments that can
+be used here:
+
+- ~${method}~ :: the name of the method, without the name of the service.
+- ~${method-full}~ :: the name of the method including the service name.
+- ~${decl}~ :: the entire declaration of the grpc method, including the
+  name, request and return types.
+- ~${req-type}~ :: the name of the request type.
+- ~${resp-type}~ :: the name of the response type.
 
 ** Troubleshooting
 
