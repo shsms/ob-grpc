@@ -44,17 +44,17 @@ In an empty org buffer, run ~M-x ob-grpc-init~.  This would add these
 properties to the buffer:
 
 #+begin_src org
-:PROPERTIES:
-:GRPC-ENDPOINT: [::1]:8080
-:PROTO-FILE: ./proto/service.proto
-:PROTO-IMPORT-PATH: proto
-:PLAIN-TEXT: no
-:END:
+  :PROPERTIES:
+  :GRPC-ENDPOINT: [::1]:8080
+  :PROTO-FILE: ./proto/service.proto
+  :PROTO-IMPORT-PATH: proto
+  :PLAIN-TEXT: yes
+  :END:
 #+end_src
 
 *Notes:*
 - Update their values as necessary.
-- When not using TLS, set ~:PLAIN-TEXT:~ to ~yes~.
+- When using TLS, set ~:PLAIN-TEXT:~ to ~no~.
 - Separate multiple import paths by a space character.
 
 *** Insert org-babel blocks

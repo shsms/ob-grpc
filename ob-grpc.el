@@ -21,7 +21,7 @@
   (setq-local prop-defaults '(("GRPC-ENDPOINT" . "[::1]:8080")
 			      ("PROTO-FILE" . "./proto/service.proto")
 			      ("PROTO-IMPORT-PATH" . "proto")
-			      ("PLAIN-TEXT" . "no")))
+			      ("PLAIN-TEXT" . "yes")))
   (let ((props (org-buffer-property-keys)))
     (mapcar
      (lambda (kvp)
