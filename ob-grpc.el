@@ -104,23 +104,22 @@ in PROTO-FILE and IMPORT-PATHS.  Else return methods under SERVICE."
 		 (resp-message (match-string 5 method-description))
                  (grpc-block-prefix (org-entry-get nil "GRPC-BLOCK-PREFIX" t)))
              (when grpc-block-prefix
-               (setq block-prefix (replace-regexp-in-string
-                                   (regexp-quote "${method-full}") name
-                                   (replace-regexp-in-string
-                                    (regexp-quote "${method}") method-short
-                                    (replace-regexp-in-string
-                                     (regexp-quote "${req-type}") (if req-stream
-                                                                      (concat req-stream " " req-message)
-                                                                    req-message)
-                                     (replace-regexp-in-string
-                                      (regexp-quote "${resp-type}") (if resp-stream
-                                                                        (concat resp-stream " " resp-message)
-                                                                      resp-message)
-                                      (replace-regexp-in-string
-                                       (regexp-quote "${decl}") decl
-                                       (replace-regexp-in-string
-                                        (regexp-quote "\\n") "\n"
-                                        grpc-block-prefix))))))))
+               (setq
+                block-prefix
+                (thread-last grpc-block-prefix
+                             (replace-regexp-in-string (regexp-quote "\\n") "\n")
+                             (replace-regexp-in-string (regexp-quote "${decl}") decl)
+                             (replace-regexp-in-string (regexp-quote "${method}") method-short)
+                             (replace-regexp-in-string (regexp-quote "${method-full}") name)
+                             (replace-regexp-in-string (regexp-quote "${resp-type}")
+                                                       (if resp-stream
+                                                           (concat resp-stream " " resp-message)
+                                                         resp-message))
+                             (replace-regexp-in-string (regexp-quote "${req-type}")
+                                                       (if req-stream
+                                                           (concat req-stream " " req-message)
+                                                         req-message))))
+               )
              (let ((msg-desc (ob-grpc--grpcurl-describe proto-file import-paths req-message t)))
 	       (and (string-match "Message template:\n\\(.*\\(?:\n.*\\)*?\\)\\(?:\n\\'\\)"
 				  msg-desc)
